@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manual de uso · Toma de Inventario Casa Matriz</title>
+<style>
+  :root{
+    --ground:#edf1f2; --surface:#ffffff; --surface-2:#f6f8f9;
+    --ink:#0f1619; --body:#2c383e; --muted:#5e6d75; --line:#d2dade;
+    --accent:#0d5f68; --accent-soft:#d9e9ea;
+    --ok:#1b7a46; --ok-bg:#dbeee2;
+    --warn:#8f5600; --warn-bg:#f7e6c8;
+    --bad:#9d1b21; --bad-bg:#f7dcdd;
+    --info:#1d4e8c; --info-bg:#dde7f5;
+    --neutral:#5e6d75; --neutral-bg:#e4e9eb;
+    --display:"Bahnschrift","Segoe UI Semibold","Segoe UI",system-ui,sans-serif;
+    --text:"Segoe UI",system-ui,-apple-system,sans-serif;
+    --mono:"Consolas","Cascadia Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--ground); color:var(--body);
+    font-family:var(--text); font-size:17px; line-height:1.6;}
+  .wrap{max-width:1000px; margin:0 auto; padding:0 24px 80px;}
+  h1,h2,h3,.label{font-family:var(--display); color:var(--ink);}
+  h1{font-size:42px; font-weight:600; letter-spacing:.01em; line-height:1.08; margin:0;}
+  h2{font-size:27px; font-weight:600; margin:0;}
+  h3{font-size:18px; font-weight:600; margin:0; font-family:var(--text);}
+  p{margin:0;}
+  code{font-family:var(--mono); font-size:.88em; background:var(--surface-2); border:1px solid var(--line); border-radius:3px; padding:1px 5px;}
+  .label{font-size:12px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--accent);}
+
+  header{background:var(--surface); border:1px solid var(--line); border-top:5px solid var(--accent);
+    margin:36px 0 0; padding:30px 32px 0;}
+  header h1{margin:10px 0 12px;}
+  header p.lead{max-width:62ch; font-size:19px;}
+  .meta{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
+    margin:26px -32px 0; border-top:1px solid var(--line);}
+  .meta div{padding:14px 32px; border-right:1px solid var(--line);}
+  .meta div:last-child{border-right:none;}
+  .meta dt{font-size:11.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:3px;}
+  .meta dd{margin:0; font-family:var(--mono); font-size:14px; color:var(--ink);}
+
+  section{margin-top:52px;}
+  .sec-head{display:flex; align-items:baseline; gap:14px; border-bottom:2px solid var(--ink); padding-bottom:8px; margin-bottom:22px;}
+  .sec-head .n{font-family:var(--mono); font-size:14px; color:var(--accent); font-weight:700;}
+  .prose{max-width:70ch; display:flex; flex-direction:column; gap:14px;}
+
+  .flow{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-top:20px;}
+  .flow div{background:var(--surface); border:1px solid var(--line); padding:16px 18px;}
+  .flow .step{font-family:var(--mono); font-size:12px; color:var(--accent); display:block; margin-bottom:6px; letter-spacing:.08em;}
+  .flow strong{color:var(--ink); display:block; margin-bottom:4px;}
+  .flow span.d{font-size:15px; color:var(--muted);}
+
+  ol.steps{list-style:none; counter-reset:s; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+  ol.steps li{counter-increment:s; background:var(--surface); border:1px solid var(--line); padding:18px 22px 18px 68px; position:relative;}
+  ol.steps li::before{content:counter(s); position:absolute; left:22px; top:15px;
+    font-family:var(--display); font-weight:600; font-size:22px; color:var(--accent);}
+  ol.steps h3{margin-bottom:4px;}
+  ol.steps p + p{margin-top:6px;}
+
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); background:var(--surface);}
+  table{border-collapse:collapse; width:100%; min-width:640px; font-size:16px;}
+  th,td{text-align:left; padding:11px 16px; border-bottom:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--surface-2); font-family:var(--display); font-size:12.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted); font-weight:600;}
+  tbody tr:last-child td{border-bottom:none;}
+  td.name{font-family:var(--mono); font-size:14px; color:var(--ink); white-space:nowrap;}
+
+  .chip{display:inline-block; font-family:var(--mono); font-size:12.5px; font-weight:700;
+    padding:3px 9px; border-radius:2px; white-space:nowrap;}
+  .ok{background:var(--ok-bg); color:var(--ok);}
+  .warn{background:var(--warn-bg); color:var(--warn);}
+  .bad{background:var(--bad-bg); color:var(--bad);}
+  .info{background:var(--info-bg); color:var(--info);}
+  .neu{background:var(--neutral-bg); color:var(--neutral);}
+
+  .folder{background:var(--surface); border:1px solid var(--line); padding:18px 22px; margin-top:20px;
+    font-family:var(--mono); font-size:15px; color:var(--ink); line-height:1.9; overflow-x:auto;}
+  .folder span{color:var(--muted); font-family:var(--text); font-size:14px;}
+
+  .faq{display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line);}
+  .faq article{background:var(--surface); padding:18px 20px;}
+  .faq h3{font-size:16.5px; margin-bottom:5px;}
+  .faq p{font-size:16px;}
+
+  .note{background:var(--accent-soft); border:1px solid var(--line); border-left:4px solid var(--accent);
+    padding:16px 20px; margin-top:20px;}
+  .note p{max-width:68ch;}
+  footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:15px;}
+  @media print{
+    body{background:#fff; font-size:12pt;}
+    section{break-inside:avoid;}
+    .wrap{max-width:none; padding:0;}
+  }
+  @media (max-width:640px){
+    body{font-size:16px;}
+    h1{font-size:32px;}
+    header{padding:24px 20px 0;} .meta{margin:22px -20px 0;} .meta div{padding:12px 20px;}
+    ol.steps li{padding:16px 18px 16px 58px;} ol.steps li::before{left:18px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="label">Manual de uso</span>
+  <h1>Toma de Inventario<br>Casa Matriz</h1>
+  <p class="lead">Este archivo compara el stock del sistema con lo que hay físicamente en bodega. Usted solo escanea serial por serial: no hay que marcar celdas, escribir cantidades ni apretar botones entre un equipo y otro.</p>
+  <dl class="meta">
+    <div><dt>Archivo</dt><dd>Toma_Inventario_Demo.xlsm</dd></div>
+    <div><dt>Sucursal</dt><dd>Casa Matriz</dd></div>
+    <div><dt>Necesita</dt><dd>Excel de escritorio</dd></div>
+    <div><dt>Equipo</dt><dd>Uno a la vez</dd></div>
+  </dl>
+</header>
+
+<section>
+  <div class="sec-head"><span class="n">01</span><h2>Cómo funciona</h2></div>
+  <div class="prose">
+    <p>El archivo compara dos listas: la del sistema, que sale del reporte de Aurora, y la física, que se arma escaneando. Todo lo que no calce queda marcado con un motivo.</p>
+  </div>
+  <div class="flow">
+    <div><span class="step">ENTRADA</span><strong>Reporte de Aurora</strong><span class="d">Usted descarga el reporte de productos almacenados y lo guarda en la carpeta Aurora. Trae todas las sucursales.</span></div>
+    <div><span class="step">FILTRO</span><strong>Lo esperado</strong><span class="d">El archivo se queda solo con Casa Matriz y descarta lo que tiene Nota de Venta o Picking.</span></div>
+    <div><span class="step">TERRENO</span><strong>El escaneo</strong><span class="d">Cada serial leído se busca en esa lista y se guarda con su hora y su resultado.</span></div>
+    <div><span class="step">SALIDA</span><strong>Las diferencias</strong><span class="d">Faltantes, sobrantes y ajustes salen en un Excel normal, listo para revisar y enviar.</span></div>
+  </div>
+  <div class="folder">
+    Inventario_LasCondes\<br>
+    &nbsp;&nbsp;├─ Toma_Inventario_Demo.xlsm &nbsp; <span>el archivo de trabajo</span><br>
+    &nbsp;&nbsp;├─ Manual de uso.html &nbsp; <span>este documento</span><br>
+    &nbsp;&nbsp;├─ Aurora\ &nbsp; <span>aquí se guarda el reporte descargado</span><br>
+    &nbsp;&nbsp;└─ Reportes\ &nbsp; <span>aquí aparecen los reportes que usted genera</span>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">02</span><h2>Paso a paso</h2></div>
+  <ol class="steps">
+    <li>
+      <h3>Descargar el reporte de Aurora</h3>
+      <p>Descargue el reporte de productos almacenados y guárdelo en la carpeta <code>Aurora</code>, al lado del archivo. Conviene dejar solo el más nuevo: el archivo siempre usa el más reciente, aunque cambie de nombre.</p>
+    </li>
+    <li>
+      <h3>Presionar ACTUALIZAR AURORA</h3>
+      <p>Le confirma cuántos seriales trae el reporte y cuántos se esperan en Casa Matriz. Hágalo al empezar cada toma. Si lo repite a mitad de una toma, los escaneos ya hechos se mantienen.</p>
+    </li>
+    <li>
+      <h3>Presionar ESCANEAR y escanear</h3>
+      <p>Se abre una ventana con el cursor listo. Escanee un serial tras otro: la pantalla se pone verde cuando el equipo estaba en el sistema, y cambia de color y suena cuando algo no calza.</p>
+      <p>Si una etiqueta está dañada, escriba el serial a mano y presione Enter. Si se equivoca, use <b>Deshacer último</b>.</p>
+    </li>
+    <li>
+      <h3>Cerrar y seguir cuando quiera</h3>
+      <p>La toma es acumulativa: puede cerrar la ventana, cerrar Excel y continuar al día siguiente. Todo queda guardado y la pantalla de inicio muestra cuánto lleva avanzado.</p>
+    </li>
+    <li>
+      <h3>Registrar los movimientos del día</h3>
+      <p>Si un equipo salió o llegó mientras contaba, use <b>AJUSTE MANUAL</b>: escanee el serial y escriba el motivo. En el reporte aparece como AJUSTADO con su explicación, en vez de figurar como un faltante sin causa.</p>
+    </li>
+    <li>
+      <h3>Finalizar la toma</h3>
+      <p>Muestra el resumen y pide confirmación. El botón marcado por defecto es "No", para que un Enter de la pistola no cierre la toma por accidente. Al confirmar, guarda todo en el historial, crea el reporte en la carpeta <code>Reportes</code> y deja el archivo limpio para la toma siguiente.</p>
+    </li>
+  </ol>
+  <div class="note">
+    <p><b>Para revisar con calma o enviar el avance:</b> el botón <b>Exportar a Excel</b> de la hoja RESULTADO crea un Excel normal, sin macros, que se abre y se trabaja en cualquier PC. Sirve también a mitad de una toma, sin cerrarla.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">03</span><h2>Qué significa cada resultado</h2></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Resultado</th><th>Qué pasó</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td><span class="chip ok">ENCONTRADO</span></td><td>El serial estaba en el sistema en Casa Matriz y apareció físicamente.</td><td>Nada, siga escaneando.</td></tr>
+        <tr><td><span class="chip warn">DUPLICADO</span></td><td>Ese serial ya se había escaneado en esta toma.</td><td>Nada: no se cuenta dos veces. Muestra la fecha del primer escaneo.</td></tr>
+        <tr><td><span class="chip bad">FALTANTE</span></td><td>Está en el sistema y nunca se escaneó. Aparece solo en el resultado, no al escanear.</td><td>Buscarlo. Si no aparece, va en el reporte de diferencias.</td></tr>
+        <tr><td><span class="chip bad">NO EXISTE</span></td><td>Se escaneó algo que Aurora no tiene en ninguna sucursal.</td><td>Revisar la etiqueta. Queda como sobrante.</td></tr>
+        <tr><td><span class="chip bad">OTRA SUCURSAL</span></td><td>El serial existe, pero Aurora lo tiene en otra sucursal, e indica cuál.</td><td>Está acá y el sistema no lo sabe: informarlo.</td></tr>
+        <tr><td><span class="chip info">EN SALIDA</span></td><td>Tiene Nota de Venta o Picking asignado.</td><td>Nada: no se cuenta, aunque esté en bodega.</td></tr>
+        <tr><td><span class="chip neu">CÓDIGO SKU</span></td><td>Lo escaneado es el código del producto, no el serial del equipo.</td><td>Escanear la etiqueta del serial. No se registró nada.</td></tr>
+        <tr><td><span class="chip info">AJUSTADO</span></td><td>Un faltante o sobrante que usted justificó con un motivo.</td><td>Nada: el motivo viaja en el reporte.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">04</span><h2>Para qué sirve cada hoja</h2></div>
+  <div class="prose">
+    <p>En el día a día se usan dos: <b>INICIO</b> para los botones y <b>RESULTADO</b> para mirar las diferencias. Las demás guardan el registro de lo que se escaneó y el historial de las tomas anteriores, y basta con consultarlas.</p>
+  </div>
+  <div class="tablewrap" style="margin-top:20px">
+    <table>
+      <thead><tr><th>Hoja</th><th>Para qué sirve</th><th>¿Se toca?</th></tr></thead>
+      <tbody>
+        <tr><td class="name">INICIO</td><td>Los botones y el avance de la toma en curso.</td><td>Sí, todos los días</td></tr>
+        <tr><td class="name">RESULTADO</td><td>La foto de la toma actual: faltantes primero, después sobrantes, al final lo encontrado. Se recalcula cada vez.</td><td>Mirar y exportar</td></tr>
+        <tr><td class="name">ESCANEOS</td><td>El registro de cada escaneo: qué, a qué hora y con qué resultado. Lo deshecho queda marcado como anulado, no se borra.</td><td>Solo consultar</td></tr>
+        <tr><td class="name">AJUSTES</td><td>Los ajustes manuales con su motivo. Para quitar uno, borre su fila.</td><td>Rara vez</td></tr>
+        <tr><td class="name">HISTORICO</td><td>Una línea por toma cerrada: fechas, totales y el nombre del reporte generado.</td><td>Solo consultar</td></tr>
+        <tr><td class="name">HIST_DETALLE</td><td>El detalle de cada toma cerrada, serial por serial. Sirve para saber si un equipo estaba en la toma anterior.</td><td>Solo consultar</td></tr>
+        <tr><td class="name">CONFIG</td><td>La sucursal y la lista de bodegas que se cuentan. Escriba <code>No</code> en la que no deba contarse.</td><td>Casi nunca</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">05</span><h2>Preguntas frecuentes</h2></div>
+  <div class="faq">
+    <article><h3>¿Tengo que apretar algo entre un escaneo y otro?</h3><p>No. La pistola envía el Enter sola, el campo se limpia y queda listo para el siguiente serial.</p></article>
+    <article><h3>¿Puedo parar y seguir otro día?</h3><p>Sí. La toma sigue abierta hasta que usted presione FINALIZAR TOMA. Se guarda sola cada 25 escaneos y al cerrar la ventana.</p></article>
+    <article><h3>¿Qué pasa si escaneo dos veces el mismo equipo?</h3><p>Sale DUPLICADO en naranja y no se cuenta de nuevo. El total nunca se infla.</p></article>
+    <article><h3>Escaneé algo por error, ¿cómo lo borro?</h3><p>Con <b>Deshacer último</b>. El escaneo queda anulado y los contadores vuelven atrás.</p></article>
+    <article><h3>La etiqueta está rota, ¿puedo escribir el serial?</h3><p>Sí: escríbalo en el mismo campo y presione Enter.</p></article>
+    <article><h3>¿Puedo usar la pistola para buscar algo en Google?</h3><p>Cierre primero la ventana de escaneo. Mientras está abierta, todo lo que lea la pistola entra al inventario.</p></article>
+    <article><h3>Entró o salió mercadería en medio de la toma, ¿qué hago?</h3><p>Use AJUSTE MANUAL con el motivo. También puede descargar Aurora de nuevo y presionar ACTUALIZAR AURORA: lo escaneado se mantiene.</p></article>
+    <article><h3>¿Debo borrar el reporte anterior de la carpeta Aurora?</h3><p>No es obligatorio, el archivo usa siempre el más reciente. Igual conviene dejar solo uno para no confundirse.</p></article>
+    <article><h3>Un equipo está en bodega pero dice EN SALIDA, ¿está mal?</h3><p>No. Tiene Nota de Venta o Picking asignado, así que ya no forma parte del stock que se cuenta.</p></article>
+    <article><h3>¿Dónde queda el reporte para enviar?</h3><p>En la carpeta <code>Reportes</code>, con fecha y hora en el nombre. Es un Excel sin macros: se abre en cualquier PC.</p></article>
+    <article><h3>Se abrió con un aviso rojo arriba, ¿qué hago?</h3><p>Las macros están bloqueadas: cierre Excel, clic derecho al archivo, Propiedades, marque Desbloquear y ábralo de nuevo. El mismo aviso explica el resto.</p></article>
+    <article><h3>¿Puedo saber si un serial se contó en la toma pasada?</h3><p>Sí. En la hoja HIST_DETALLE, filtre por ese serial y verá en qué tomas apareció y con qué estado.</p></article>
+    <article><h3>¿Puedo abrirlo en el PC fijo y en el notebook a la vez?</h3><p>No. Trabaje siempre en un equipo. Para revisar en el otro, use el reporte exportado.</p></article>
+    <article><h3>¿Tengo que guardar antes de cerrar?</h3><p>No hace falta: el archivo se guarda solo mientras escanea y al cerrar la ventana de escaneo.</p></article>
+  </div>
+</section>
+
+<footer>
+  <p>Toma de Inventario · Sucursal Casa Matriz · Requiere Excel de escritorio en Windows con macros habilitadas.</p>
+</footer>
+
+</div>
+</body>
+</html>

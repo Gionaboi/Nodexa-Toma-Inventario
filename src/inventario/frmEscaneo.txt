@@ -1,0 +1,110 @@
+Option Explicit
+
+Private tInicio As Double
+Private tUltima As Double
+Private nTeclas As Long
+Private nSinGuardar As Long
+
+Private Sub UserForm_Initialize()
+    MostrarEstado "LISTO PARA ESCANEAR", "", "", RGB(90, 90, 90), vbWhite
+    ActualizarContador
+End Sub
+
+Private Sub UserForm_Activate()
+    txtScan.SetFocus
+End Sub
+
+Private Sub txtScan_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    ' Algunas pistolas envían CR + LF: se ignora el salto de línea sobrante
+    If KeyAscii = 10 Or KeyAscii = 13 Then
+        KeyAscii = 0
+        Exit Sub
+    End If
+    If nTeclas = 0 Then tInicio = Timer
+    nTeclas = nTeclas + 1
+    tUltima = Timer
+End Sub
+
+Private Sub txtScan_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If KeyCode = vbKeyReturn Or KeyCode = vbKeyTab Then
+        KeyCode = 0
+        Procesar
+    End If
+End Sub
+
+Private Sub Procesar()
+    Dim codigo As String: codigo = txtScan.Text
+    txtScan.Text = ""
+    ' Pistola: los caracteres llegan con menos de 40 ms entre sí; a mano, mucho más lento
+    Dim origen As String: origen = "Manual"
+    If nTeclas > 1 Then
+        If (tUltima - tInicio) * 1000 / (nTeclas - 1) < 40 Then origen = "Pistola"
+    End If
+    nTeclas = 0
+    Dim serial As String: serial = NormalizarSerial(codigo)
+    If serial = "" Then Exit Sub
+
+    Dim detalle As String
+    Select Case ProcesarEscaneo(codigo, origen, detalle)
+        Case E_ENCONTRADO
+            MostrarEstado "ENCONTRADO", serial, detalle, RGB(0, 140, 60), vbWhite
+        Case E_DUPLICADO
+            MostrarEstado "YA ESCANEADO (DUPLICADO)", serial, detalle, RGB(230, 120, 0), vbWhite
+            Beep
+        Case E_OTRA
+            MostrarEstado "OTRA SUCURSAL", serial, detalle, RGB(200, 0, 0), vbWhite
+            Beep
+        Case E_NOEXISTE
+            MostrarEstado "NO EXISTE EN AURORA", serial, detalle, RGB(200, 0, 0), vbWhite
+            Beep
+        Case E_SALIDA
+            MostrarEstado "EN SALIDA (NV / PICKING)", serial, detalle, RGB(0, 90, 170), vbWhite
+            Beep
+        Case E_EXCLUIDO
+            MostrarEstado "BODEGA QUE NO SE CUENTA", serial, detalle, RGB(100, 100, 100), vbWhite
+            Beep
+        Case E_SKU
+            MostrarEstado "CÓDIGO DE PRODUCTO, NO SERIAL", serial, detalle, RGB(255, 200, 0), vbBlack
+            Beep
+    End Select
+    ActualizarContador
+
+    nSinGuardar = nSinGuardar + 1
+    If nSinGuardar >= 25 Then
+        GuardarSilencioso
+        nSinGuardar = 0
+    End If
+End Sub
+
+Private Sub MostrarEstado(titulo As String, serial As String, detalle As String, fondo As Long, letra As Long)
+    lblEstado.Caption = titulo
+    lblEstado.BackColor = fondo
+    lblEstado.ForeColor = letra
+    lblSerial.Caption = serial
+    lblDetalle.Caption = detalle
+End Sub
+
+Private Sub ActualizarContador()
+    Dim esp As Long: esp = dEsperado.Count
+    Dim pct As Double
+    If esp > 0 Then pct = nEncontrados / esp
+    lblContador.Caption = "Encontrados " & nEncontrados & " de " & esp & "  (" & Format(pct, "0%") & ")" & _
+        "        Faltan " & (esp - nEncontrados) & vbLf & _
+        "Sobrantes " & nSobrantes & "        Duplicados " & nDuplicados & "        En salida " & nSalida
+End Sub
+
+Private Sub btnDeshacer_Click()
+    Dim s As String: s = DeshacerUltimo()
+    If s = "" Then
+        MostrarEstado "NADA QUE DESHACER", "", "No hay escaneos en la toma actual.", RGB(90, 90, 90), vbWhite
+    Else
+        MostrarEstado "ESCANEO ANULADO", s, "Se anuló el último escaneo. Si corresponde, vuelva a escanearlo.", RGB(90, 90, 90), vbWhite
+        nSinGuardar = nSinGuardar + 1
+    End If
+    ActualizarContador
+    txtScan.SetFocus
+End Sub
+
+Private Sub btnCerrar_Click()
+    Unload Me
+End Sub

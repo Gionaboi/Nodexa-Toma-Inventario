@@ -1,0 +1,18 @@
+Option Explicit
+
+Private Sub Workbook_Open()
+    modInventario.AlAbrir
+End Sub
+
+' El archivo se guarda con el aviso rojo de "macros bloqueadas": si en otro
+' equipo las macros no corren, el usuario ve el aviso y qué hacer.
+Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
+    Application.ScreenUpdating = False
+    modInventario.BannerBloqueado
+End Sub
+
+Private Sub Workbook_AfterSave(ByVal Success As Boolean)
+    modInventario.BannerOK
+    Application.ScreenUpdating = True
+    ThisWorkbook.Saved = True
+End Sub

@@ -1,0 +1,16 @@
+# Datos reales: nunca deben subirse a este repositorio
+**/Aurora/*.xlsx
+!demo/Aurora/reporte_demo.xlsx
+**/Reportes/*.xlsx
+
+# Temporales de Excel y Windows
+~$*
+*.tmp
+_prueba_escritura*.xlsx
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+.venv/

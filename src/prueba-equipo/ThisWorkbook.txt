@@ -1,0 +1,15 @@
+Option Explicit
+
+Private Sub Workbook_Open()
+    modPrueba.AlAbrir
+End Sub
+
+' El archivo siempre se guarda en estado "bloqueado": así, si en otro equipo
+' las macros no corren, nunca se ve un OK heredado.
+Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
+    modPrueba.EstadoInicial
+End Sub
+
+Private Sub Workbook_AfterSave(ByVal Success As Boolean)
+    modPrueba.AlAbrir
+End Sub

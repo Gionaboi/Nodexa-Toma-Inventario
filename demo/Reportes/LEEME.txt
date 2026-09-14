@@ -1,0 +1,2 @@
+Aqui aparecen los reportes que genera el archivo de inventario
+(al presionar Exportar a Excel o Finalizar toma).
