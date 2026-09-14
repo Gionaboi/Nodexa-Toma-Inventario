@@ -4,8 +4,9 @@ Private tInicio As Double
 Private tUltima As Double
 Private nTeclas As Long
 Private analizado As Boolean
+Private procesando As Boolean
 Private ultimoCodigo As String
-Private ultimaTecla As String
+Private ultimoFin As String
 Private ultimaPistola As Boolean
 
 Private Sub UserForm_Initialize()
@@ -13,6 +14,7 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub UserForm_Activate()
+    VentanaAbierta = True
     txtScan.SetFocus
 End Sub
 
@@ -26,54 +28,94 @@ Private Sub Reiniciar()
 End Sub
 
 Private Sub txtScan_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-    ' Algunas pistolas envían CR + LF: se ignora el salto de línea sobrante
-    If KeyAscii = 10 Or KeyAscii = 13 Then
+    Dim k As Integer: k = KeyAscii
+    ' Fin de código: unas pistolas envían Enter (CR) y otras salto de línea (LF)
+    If k = 13 Or k = 10 Then
         KeyAscii = 0
+        If Not analizado Then
+            If k = 13 Then Analizar "ENTER" Else Analizar "LF"
+        End If
         Exit Sub
     End If
     If analizado Then Reiniciar
     If nTeclas = 0 Then tInicio = Timer
     nTeclas = nTeclas + 1
     tUltima = Timer
+    IniciarTemporizador
 End Sub
 
 Private Sub txtScan_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
-    If KeyCode = vbKeyReturn Or KeyCode = vbKeyTab Then
-        Dim tecla As String
-        If KeyCode = vbKeyReturn Then tecla = "ENTER" Else tecla = "TAB"
+    If KeyCode = vbKeyReturn Then
         KeyCode = 0
-        If Not analizado Then Analizar tecla
+        If Not analizado Then Analizar "ENTER"
+    ElseIf KeyCode = vbKeyTab Then
+        KeyCode = 0
+        If Not analizado Then Analizar "TAB"
+    ElseIf KeyCode = 74 And Shift = 2 Then   ' Ctrl+J: salto de línea
+        KeyCode = 0
+        If Not analizado Then Analizar "LF"
     End If
 End Sub
 
-Private Sub Analizar(tecla As String)
+' La llama el temporizador cuando la pistola dejó de enviar caracteres
+Public Sub CerrarPorInactividad()
+    If procesando Or analizado Then Exit Sub
+    If Len(txtScan.Text) < 4 Then Exit Sub
+    If MsPorCaracter() > 150 Then Exit Sub
+    Analizar "SIN TECLA"
+End Sub
+
+Private Function MsPorCaracter() As Double
+    If nTeclas > 1 Then
+        MsPorCaracter = (tUltima - tInicio) * 1000 / (nTeclas - 1)
+    Else
+        MsPorCaracter = 9999
+    End If
+End Function
+
+Private Sub Analizar(fin As String)
+    If procesando Then Exit Sub
+    procesando = True
+    DetenerTemporizador
+
     Dim codigo As String: codigo = txtScan.Text
     If Len(codigo) = 0 Then
-        lblResultado.Caption = "Se recibió " & tecla & " pero ningún carácter. Escanee de nuevo."
+        lblResultado.Caption = "Se recibió " & fin & " pero ningún carácter. Escanee de nuevo."
+        procesando = False
         Exit Sub
     End If
 
-    Dim msCar As Double
-    If nTeclas > 1 Then msCar = (tUltima - tInicio) * 1000 / (nTeclas - 1)
-    ultimaPistola = (msCar < 40)
+    Dim ms As Double: ms = MsPorCaracter()
+    ultimaPistola = (ms < 120 Or fin = "SIN TECLA")
     ultimoCodigo = codigo
-    ultimaTecla = tecla
+    ultimoFin = fin
     analizado = True
 
     Dim velocidad As String
-    If ultimaPistola Then
-        velocidad = "rápida (" & Format(msCar, "0") & " ms por carácter): llegó desde la pistola"
+    If ms > 5000 Then
+        velocidad = "no medida (un solo carácter)"
+    ElseIf ms < 120 Then
+        velocidad = "rápida (" & Format(ms, "0") & " ms por carácter): llegó desde la pistola"
     Else
-        velocidad = "lenta (" & Format(msCar, "0") & " ms por carácter): parece escrito a mano"
+        velocidad = "lenta (" & Format(ms, "0") & " ms por carácter): parece escrito a mano"
     End If
 
+    Dim texto As String
+    Select Case fin
+        Case "ENTER": texto = "ENTER (correcto)"
+        Case "TAB": texto = "TAB (el inventario también lo acepta)"
+        Case "LF": texto = "salto de línea / LF (el inventario también lo acepta)"
+        Case Else: texto = "ninguna: el código se registró solo, por inactividad"
+    End Select
+
     lblResultado.Caption = "Código recibido:   " & codigo & vbLf & _
-        "Caracteres: " & Len(codigo) & "      Tecla final: " & tecla & vbLf & _
+        "Caracteres: " & Len(codigo) & "      Tecla final: " & texto & vbLf & _
         "Velocidad: " & velocidad & vbLf & _
         BuscarEnAurora(codigo) & vbLf & vbLf & _
         "¿El código de arriba es IDÉNTICO al impreso en la etiqueta?"
     btnSi.Enabled = True
     btnNo.Enabled = True
+    procesando = False
 End Sub
 
 Private Function BuscarEnAurora(codigo As String) As String
@@ -97,18 +139,26 @@ NoDisponible:
 End Function
 
 Private Sub btnSi_Click()
+    DetenerTemporizador
     If Not ultimaPistola Then
         Escribir F_ESCANER, R_ADV, "El código llegó lento, como escrito a mano: " & ultimoCodigo, _
             "Si usó el teclado, repita la prueba escaneando con la pistola."
-    ElseIf ultimaTecla = "ENTER" Then
-        Escribir F_ESCANER, R_OK, "Pistola compatible: recibe el código completo y envía ENTER. Código probado: " & ultimoCodigo, ""
-    Else
+    ElseIf ultimoFin = "SIN TECLA" Then
+        Escribir F_ESCANER, R_ADV, "La pistola no envía ninguna tecla al final del código (" & ultimoCodigo & ").", _
+            "El inventario igual lo registra solo, 0,25 s después de escanear. Para que sea instantáneo, " & _
+            "configure la pistola con sufijo ENTER (CR) siguiendo su manual (código SCAN-01)."
+    ElseIf ultimoFin = "LF" Then
+        Escribir F_ESCANER, R_OK, "Pistola compatible: envía salto de línea (LF) al final. Código probado: " & ultimoCodigo, ""
+    ElseIf ultimoFin = "TAB" Then
         Escribir F_ESCANER, R_OK, "Pistola compatible: envía TAB en vez de ENTER (el inventario acepta ambos). Código probado: " & ultimoCodigo, ""
+    Else
+        Escribir F_ESCANER, R_OK, "Pistola compatible: recibe el código completo y envía ENTER. Código probado: " & ultimoCodigo, ""
     End If
     Unload Me
 End Sub
 
 Private Sub btnNo_Click()
+    DetenerTemporizador
     Escribir F_ESCANER, R_ERR, "El código recibido (" & ultimoCodigo & ") no coincide con la etiqueta.", _
         "Casi siempre es el idioma del teclado: configure la pistola con el mismo idioma que Windows " & _
         "(Español / Latinoamérica) según su manual, o avise para revisarlo (código SCAN-02)."
@@ -121,12 +171,15 @@ Private Sub btnOmitir_Click()
 End Sub
 
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    VentanaAbierta = False
+    DetenerTemporizador
     If CloseMode = vbFormControlMenu Then RegistrarSinConfirmar
 End Sub
 
 Private Sub RegistrarSinConfirmar()
+    DetenerTemporizador
     If Len(txtScan.Text) > 0 And Not analizado Then
-        Escribir F_ESCANER, R_ERR, "Llegaron caracteres (" & txtScan.Text & ") pero la pistola no envió ENTER ni TAB.", _
+        Escribir F_ESCANER, R_ERR, "Llegaron caracteres (" & txtScan.Text & ") pero no se pudo cerrar el escaneo.", _
             "Configure la pistola para enviar ENTER al final del código (sufijo CR) según su manual (código SCAN-01)."
     ElseIf analizado Then
         Escribir F_ESCANER, R_NP, "Se escaneó, pero no se confirmó si el código coincide con la etiqueta.", _

@@ -30,7 +30,7 @@ try {
     }
     $vbp = $wb.VBProject
 
-    foreach ($mod in 'modUtil', 'modInventario', 'modConstruir') {
+    foreach ($mod in 'modUtil', 'modInventario', 'modTimer', 'modConstruir') {
         $m = $vbp.VBComponents.Add(1); $m.Name = $mod
         $m.CodeModule.AddFromString((Leer "$mod.bas"))
     }

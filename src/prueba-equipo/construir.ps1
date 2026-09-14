@@ -23,6 +23,8 @@ try {
 
     $m = $vbp.VBComponents.Add(1); $m.Name = 'modPrueba'
     $m.CodeModule.AddFromString((Leer 'modPrueba.bas'))
+    $mt = $vbp.VBComponents.Add(1); $mt.Name = 'modTimer'
+    $mt.CodeModule.AddFromString((Leer 'modTimer.bas'))
     $mc = $vbp.VBComponents.Add(1); $mc.Name = 'modConstruir'
     $mc.CodeModule.AddFromString((Leer 'modConstruir.bas'))
     $vbp.VBComponents.Item($wb.CodeName).CodeModule.AddFromString((Leer 'ThisWorkbook.txt'))

@@ -9,6 +9,7 @@ Nace de un problema concreto: contar una bodega con cientos de equipos serializa
 ## Qué hace
 
 - **Escaneo continuo.** Una ventana con el cursor siempre listo: se escanea, se registra y queda esperando el siguiente. Sin marcar celdas ni escribir cantidades.
+- **No depende de cómo esté configurada la pistola.** Acepta Enter (CR), salto de línea (LF) o TAB como fin de código, y si la pistola no envía ninguna tecla, registra el serial solo tras 250 ms sin recibir caracteres. Escribir a mano sigue exigiendo Enter, para no cortar un serial a medias.
 - **Respuesta inmediata por color y sonido.** Verde si el equipo estaba en el sistema; naranja, rojo o azul según el problema.
 - **Ocho resultados distintos**, no solo "está / no está":
 
